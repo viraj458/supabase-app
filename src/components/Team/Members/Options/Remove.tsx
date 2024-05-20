@@ -1,4 +1,3 @@
-// import CustomButton from "@/components/CustomButton";
 import CustomButton from "@/components/CustomButton";
 import {
   AlertDialog,
@@ -10,6 +9,8 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { useHelpers } from "@/hooks/useHelpers";
+import { supabase } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 export default function Remove({ user, open, onClose }: any) {
   const { loading, setLoading } = useHelpers();
@@ -17,7 +18,17 @@ export default function Remove({ user, open, onClose }: any) {
   const removeMember = async () => {
     try {
       setLoading(true);
-      alert('s')
+      const { data, error } = await supabase
+        .from('team_members')
+        .update({
+          status: "removed"
+        })
+        .eq("id", user.id)
+        .select('*');
+
+      if (data) {
+        toast.success("User successfully removed from team.")
+      }
     } catch (error: any) {
       throw new Error(error);
     } finally {

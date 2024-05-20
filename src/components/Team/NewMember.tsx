@@ -14,6 +14,8 @@ import { useHelpers } from "@/hooks/useHelpers"
 import { useState } from "react"
 import CustomButton from "../CustomButton"
 import Roles from "./Members/Options/Roles"
+import { supabase } from "@/lib/supabase/client"
+import { toast } from "sonner"
 
 export default function NewMember({ team_id }: { team_id: string }) {
   const { open, setOpen, loading, setLoading } = useHelpers();
@@ -26,13 +28,21 @@ export default function NewMember({ team_id }: { team_id: string }) {
   const saveMember = async () => {
     try {
       setLoading(true);
+      const { data, error } = await supabase
+        .from('team_members')
+        .insert({ ...member, team_id })
+        .select();
+
+      if (data) {
+        toast .success("Team members successfully added.")
+      }
     } catch (error: any) {
       throw new Error(error);
     } finally {
       setOpen(false);
       setLoading(false);
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={() => setOpen(!open)}>

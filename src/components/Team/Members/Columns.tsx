@@ -2,7 +2,9 @@ import OptionsMenu from '@/components/Team/Members/Options/OptionsMenu';
 import Roles from '@/components/Team/Members/Options/Roles';
 import { Badge } from '@/components/ui/badge';
 import { useHelpers } from '@/hooks/useHelpers';
+import { supabase } from '@/lib/supabase/client';
 import { ColumnDef } from '@tanstack/react-table';
+import { toast } from 'sonner';
 
 export const columns: ColumnDef<any>[] = [
   {
@@ -23,12 +25,10 @@ export const columns: ColumnDef<any>[] = [
         </div>
       );
     },
-  }, {
+  },
+  {
     accessorKey: "role",
     header: "Role",
-    meta: {
-      align: 'left'
-    },
     cell: ({ row }) => {
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const { open, setOpen, loading, setLoading } = useHelpers();
@@ -37,8 +37,18 @@ export const columns: ColumnDef<any>[] = [
 
       const onRoleChanged = async (v: string) => {
         try {
-          setLoading(true)
-          alert(v)
+          setLoading(true);
+          const { data, error } = await supabase
+            .from('team_members')
+            .update({
+              role: v
+            })
+            .eq("id", id)
+            .select('*');
+
+          if (data) {
+            toast.success("Role updated successfully")
+          }
         } catch (error: any) {
           throw new Error(error);
         } finally {
@@ -54,30 +64,48 @@ export const columns: ColumnDef<any>[] = [
     }
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: 'status',
+    header: 'Status',
     cell: ({ row }) => {
-      const status: string = row.getValue("status")
+      const status: string = row.getValue('status');
       switch (status) {
-        case "pending":
-          return <Badge className="hover:bg-transparent capitalize bg-orange-50 text-orange-900">Pending</Badge>
-        case "active":
-          return <Badge className="hover:bg-transparent capitalize bg-green-50 text-green-900">Active</Badge>
-        case "removed":
-          return <Badge className="hover:bg-transparent capitalize bg-red-50 text-red-900">Removed</Badge>
+        case 'pending':
+          return (
+            <Badge className="hover:bg-transparent capitalize bg-orange-50 text-orange-900">
+              Pending
+            </Badge>
+          );
+        case 'active':
+          return (
+            <Badge className="hover:bg-transparent capitalize bg-green-50 text-green-900">
+              Active
+            </Badge>
+          );
+        case 'removed':
+          return (
+            <Badge className="hover:bg-transparent capitalize bg-red-50 text-red-900">
+              Removed
+            </Badge>
+          );
         default:
-          return <Badge className="capitalize bg-neutral-100 text-neutral-600">Unknown</Badge>
+          return (
+            <Badge className="capitalize bg-neutral-100 text-neutral-600">
+              Unknown
+            </Badge>
+          );
       }
-    }
+    },
   },
-  
+
   {
-    id: "actions",
+    id: 'actions',
     cell: ({ row }) => {
       const user = row.original;
-      return <div className="flex justify-end">
-        <OptionsMenu {...{ user }} />
-      </div>
-    }
+      return (
+        <div className="flex justify-end">
+          <OptionsMenu {...{ user }} />
+        </div>
+      );
+    },
   },
 ];
